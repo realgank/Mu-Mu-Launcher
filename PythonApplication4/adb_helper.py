@@ -3,7 +3,11 @@ import subprocess, time, re, socket
 DEVICE_RE = re.compile(r"^(127\.0\.0\.1:\d+)\s+device")
 
 def list_devices():
-    out = subprocess.check_output(["adb", "devices"], text=True, encoding='utf-8')
+    """Return a list of connected ADB devices."""
+    try:
+        out = subprocess.check_output(["adb", "devices"], text=True, encoding="utf-8")
+    except Exception:
+        return []
     return DEVICE_RE.findall(out)
 
 def port_alive(port: int) -> bool:
@@ -22,3 +26,11 @@ def wait_for_device(port: int, timeout=30):
             return serial
         time.sleep(0.5)
     return None
+
+def adb_available() -> bool:
+    """Check that the adb executable is accessible."""
+    try:
+        subprocess.run(["adb", "version"], capture_output=True, check=True)
+        return True
+    except Exception:
+        return False

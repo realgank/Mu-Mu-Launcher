@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
-import subprocess
-from adb_helper import wait_for_device
+import subprocess, os
+from adb_helper import wait_for_device, adb_available
 
 MUMU = r"C:\\Program Files\\Netease\\MuMuPlayerGlobal-12.0\\shell\\MuMuManager.exe"
 
@@ -42,24 +42,43 @@ class App(tk.Tk):
         self.rows.append(row)
 
     def run_all(self):
+        if not adb_available():
+            self.log("❌ ADB не найден")
+            return
+
         selected = [r for r in self.rows if r.sel.get()]
         if not selected:
             self.log("⚠ Ничего не выбрано")
             return
         for row in selected:
             self.log(f"Запуск MuMu #{row.idx}...")
-            self.start_emulator(row.idx)
+            if not self.start_emulator(row.idx):
+                self.log("❌ Ошибка запуска")
+                continue
             port = self.wait_adb(row.idx)
+            if port is None:
+                self.log("❌ Порт не найден")
+                continue
             row.set_port(port)
             self.log(f"Порт {port}")
         self.log("✔ Готово")
 
-    def start_emulator(self, idx):
-        subprocess.Popen([MUMU, "api", "-v", str(idx), "launch_player"])
+    def start_emulator(self, idx) -> bool:
+        if not os.path.exists(MUMU):
+            self.log("❌ Не найден MuMuManager")
+            return False
+        try:
+            subprocess.Popen([MUMU, "api", "-v", str(idx), "launch_player"])
+            return True
+        except Exception as e:
+            self.log(str(e))
+            return False
 
     def wait_adb(self, idx):
         port = 7555 + idx - 1
-        wait_for_device(port, 30)
+        serial = wait_for_device(port, 30)
+        if not serial:
+            return None
         return port
 
     def log(self, msg: str):
@@ -71,3 +90,4 @@ class App(tk.Tk):
 
 if __name__ == "__main__":
     App().mainloop()
+
