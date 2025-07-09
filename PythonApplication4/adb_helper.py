@@ -14,11 +14,21 @@ def port_alive(port: int) -> bool:
     except Exception:
         return False
 
+def adb_connect(serial: str) -> bool:
+    try:
+        out = subprocess.check_output(["adb", "connect", serial],
+                                      text=True, stderr=subprocess.STDOUT)
+        return "connected" in out.lower()
+    except subprocess.CalledProcessError:
+        return False
+
 def wait_for_device(port: int, timeout=30):
     serial = f"127.0.0.1:{port}"
     end = time.time() + timeout
     while time.time() < end:
         if serial in list_devices():
             return serial
+        if port_alive(port):
+            adb_connect(serial)
         time.sleep(0.5)
     return None
