@@ -52,13 +52,20 @@ class App(tk.Tk):
         canvas.configure(yscrollcommand=vs.set)
         canvas.pack(side="left", fill="both", expand=True); vs.pack(side="right", fill="y")
 
+        # заголовок списка
+        hdr = ttk.Frame(self.scr_frame); hdr.pack(anchor="w", pady=(0,5))
+        ttk.Label(hdr, text="Эмулятор", width=12).grid(row=0, column=0, padx=3)
+        for i in range(5):
+            ttk.Label(hdr, text=f"Шаг {i+1}", width=8).grid(row=0, column=i+1, padx=2)
+        ttk.Label(hdr, text="Сценарий", width=12).grid(row=0, column=6, padx=3)
+
         for e in self.emus:
             row = ttk.Frame(self.scr_frame); row.pack(anchor="w", pady=2)
-            tk.Checkbutton(row, text=f"MuMu #{e.num}", variable=e.sel).pack(side=tk.LEFT,padx=3)
+            tk.Checkbutton(row, text=f"MuMu #{e.num}", variable=e.sel, width=12).grid(row=0, column=0, padx=3)
             for i in range(5):
-                tk.Checkbutton(row, text=f"Шаг {i+1}", variable=e.steps_checked[i]).pack(side=tk.LEFT, padx=1)
-            ttk.Button(row, text="🛠", width=3,
-                       command=lambda n=e.num: StepEditor(self, f"steps/mumu{n}_step1.json")).pack(side=tk.LEFT,padx=4)
+                tk.Checkbutton(row, variable=e.steps_checked[i]).grid(row=0, column=i+1, padx=2)
+            ttk.Button(row, text="Редактировать", width=12,
+                       command=lambda n=e.num: StepEditor(self, f"steps/mumu{n}_step1.json")).grid(row=0, column=6, padx=3)
 
         btns = ttk.Frame(self); btns.pack(pady=8)
         ttk.Button(btns, text="▶ Запустить", command=self.run_all).grid(row=0,column=0,padx=5)
