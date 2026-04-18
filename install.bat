@@ -1,61 +1,46 @@
 @echo off
-chcp 65001 >nul
 echo ============================================================
-echo  Установка зависимостей MuMu Launcher
+echo  MuMu Launcher - Installing dependencies
 echo ============================================================
 echo.
-
-:: Проверяем Python
-python --version >nul 2>&1
+python --version >/dev/null 2>&1
 if errorlevel 1 (
-    echo [ОШИБКА] Python не найден.
-    echo Скачайте Python 3.10+ с https://www.python.org/downloads/
-    echo При установке отметьте "Add Python to PATH"
+    echo [ERROR] Python not found.
+    echo Download Python 3.10+ from https://www.python.org/downloads/
+    echo During install check: Add Python to PATH
     pause
     exit /b 1
 )
-
-echo [OK] Python найден:
+echo [OK] Python found:
 python --version
 echo.
-
-:: Устанавливаем pip-зависимости
-echo Устанавливаем Python-зависимости...
-pip install -r requirements.txt
+echo Installing Python packages...
+pip install -r "%~dp0requirements.txt"
 if errorlevel 1 (
-    echo [ОШИБКА] Не удалось установить зависимости.
+    echo [ERROR] Failed to install packages.
     pause
     exit /b 1
 )
+echo [OK] Python packages installed.
 echo.
-echo [OK] Python-зависимости установлены.
-echo.
-
-:: Проверяем ADB
-adb version >nul 2>&1
+adb version >/dev/null 2>&1
 if errorlevel 1 (
-    echo [ВНИМАНИЕ] ADB не найден в PATH.
-    echo Скачайте Android Platform Tools и добавьте в PATH:
-    echo https://developer.android.com/tools/releases/platform-tools
+    echo [WARNING] ADB not found in PATH.
+    echo Download: https://developer.android.com/tools/releases/platform-tools
     echo.
 ) else (
-    echo [OK] ADB найден.
+    echo [OK] ADB found.
 )
-
-:: Проверяем Tesseract
-if not exist "C:\Program Files\Tesseract-OCR\tesseract.exe" (
-    echo [ВНИМАНИЕ] Tesseract OCR не найден.
-    echo Скачайте установщик:
-    echo https://github.com/UB-Mannheim/tesseract/wiki
-    echo Устанавливайте в папку по умолчанию: C:\Program Files\Tesseract-OCR\
-    echo Во время установки выберите дополнительный язык: Russian
+if not exist "%ProgramFiles%\Tesseract-OCR\tesseract.exe" (
+    echo [WARNING] Tesseract OCR not found.
+    echo Download: https://github.com/UB-Mannheim/tesseract/wiki
+    echo Install to default path and select Russian language.
     echo.
 ) else (
-    echo [OK] Tesseract найден.
+    echo [OK] Tesseract found.
 )
-
 echo.
 echo ============================================================
-echo  Установка завершена. Запустите run.bat для старта.
+echo  Done. Run run.bat to start the application.
 echo ============================================================
 pause
