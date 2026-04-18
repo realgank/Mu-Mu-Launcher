@@ -19,6 +19,10 @@ class StepEditor(tk.Toplevel):
         ttk.Button(btns, text="➕ if MATCH", command=self.add_if_match).grid(row=0, column=2, padx=3)
         ttk.Button(btns, text="➕ if TEXT",  command=self.add_if_text ).grid(row=0, column=3, padx=3)
 
+        ttk.Button(btns, text="🚀 LAUNCH APP", command=self.add_launch_app).grid(row=1, column=0, padx=3, pady=3)
+        ttk.Button(btns, text="🛑 KILL APP",   command=self.add_kill_app  ).grid(row=1, column=1, padx=3, pady=3)
+        ttk.Button(btns, text="⏳ WAIT APP",   command=self.add_wait_app  ).grid(row=1, column=2, padx=3, pady=3)
+
         ttk.Button(self, text="💾 Сохранить", command=self.save).pack(pady=8)
 
         # если файл уже существует – загрузим
@@ -71,11 +75,49 @@ class StepEditor(tk.Toplevel):
         })
         self.refresh()
 
+    def add_launch_app(self):
+        path = filedialog.askopenfilename(
+            title="Выберите приложение",
+            filetypes=[("Исполняемые файлы", "*.exe"), ("Все файлы", "*.*")]
+        )
+        if not path: return
+        args_str = simpledialog.askstring("Аргументы", "Аргументы командной строки (необязательно):", initialvalue="")
+        args = args_str.split() if args_str else []
+        self.steps.append({"type": "launch_app", "path": path, "args": args})
+        self.refresh()
+
+    def add_kill_app(self):
+        name = simpledialog.askstring("Завершить процесс", "Имя процесса (например: notepad.exe):")
+        if not name: return
+        self.steps.append({"type": "kill_app", "name": name})
+        self.refresh()
+
+    def add_wait_app(self):
+        name = simpledialog.askstring("Ожидание процесса", "Имя процесса (например: notepad.exe):")
+        if not name: return
+        timeout = ask_int("Таймаут (секунды)", 30)
+        if timeout is None: timeout = 30
+        self.steps.append({"type": "wait_app", "name": name, "timeout": timeout})
+        self.refresh()
+
     # ---------- UI helpers ----------
     def refresh(self):
         self.listbox.delete(0, tk.END)
         for i, s in enumerate(self.steps, 1):
-            self.listbox.insert(tk.END, f"{i}. {s['type']}")
+            t = s["type"]
+            if t == "launch_app":
+                label = f"{i}. launch_app: {os.path.basename(s.get('path', ''))}"
+            elif t == "kill_app":
+                label = f"{i}. kill_app: {s.get('name', '')}"
+            elif t == "wait_app":
+                label = f"{i}. wait_app: {s.get('name', '')} (таймаут {s.get('timeout', 30)} с)"
+            elif t == "tap":
+                label = f"{i}. tap ({s.get('x')}, {s.get('y')})"
+            elif t == "swipe":
+                label = f"{i}. swipe ({s.get('x1')},{s.get('y1')})→({s.get('x2')},{s.get('y2')})"
+            else:
+                label = f"{i}. {t}"
+            self.listbox.insert(tk.END, label)
 
     def save(self):
         os.makedirs(os.path.dirname(self.save_path), exist_ok=True)

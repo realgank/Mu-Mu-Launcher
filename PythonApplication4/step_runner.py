@@ -74,5 +74,31 @@ def run_steps(serial: str, steps: list, log=print):
         elif t == "log":
             log("📝 " + st["message"])
 
+        elif t == "launch_app":
+            path = st["path"]
+            args = st.get("args", [])
+            subprocess.Popen([path] + args)
+            log(f"🚀 запущено: {os.path.basename(path)}")
+
+        elif t == "kill_app":
+            name = st["name"]
+            subprocess.call(["taskkill", "/f", "/im", name])
+            log(f"🛑 завершено: {name}")
+
+        elif t == "wait_app":
+            name = st["name"]
+            timeout = st.get("timeout", 30)
+            end = time.time() + timeout
+            found = False
+            while time.time() < end:
+                out = subprocess.check_output(
+                    ["tasklist", "/fi", f"imagename eq {name}"], text=True, encoding="cp866"
+                )
+                if name.lower() in out.lower():
+                    found = True
+                    break
+                time.sleep(1)
+            log(f"⏳ ожидание {name}: {'найдено' if found else 'таймаут'}")
+
         time.sleep(0.3)   # маленькая пауза между действиями
 
